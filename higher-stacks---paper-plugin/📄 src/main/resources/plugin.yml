@@ -1,0 +1,25 @@
+name: HigherStacks
+version: '1.0.0'
+main: com.higherstacks.HigherStacksPlugin
+api-version: '1.21'
+description: Server-side Paper/Spigot plugin enabling customizable general and per-item higher stack limits.
+author: AI Studio Build
+website: https://papermc.io
+
+permissions:
+  higherstacks.admin:
+    description: Allows reloading config and changing item stack limits in-game
+    default: op
+  higherstacks.bypass:
+    description: Players with this permission bypass stack size modifications
+    default: false
+  higherstacks.use:
+    description: Allows players to benefit from higher item stacks
+    default: true
+
+commands:
+  higherstacks:
+    description: Main command for managing HigherStacks limits and reloading
+    permission: higherstacks.admin
+    usage: /higherstacks <reload|set|get|help> [material] [limit]
+    aliases: [hstacks, hs]
