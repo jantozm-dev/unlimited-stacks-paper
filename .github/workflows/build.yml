@@ -13,10 +13,6 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: higher-stacks---paper-plugin
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,24 +29,30 @@ jobs:
           java-version: "21"
 
       - name: Install dependencies
+        working-directory: higher-stacks---paper-plugin
         run: bun install --frozen-lockfile
 
       - name: Build application
+        working-directory: higher-stacks---paper-plugin
         run: bun run build
 
       - name: Package build as JAR
         run: |
-          mkdir -p ../release
+          mkdir -p "$GITHUB_WORKSPACE/release"
           jar --create \
-            --file "../release/higher-stacks-paper-plugin-${GITHUB_REF_NAME}.jar" \
-            -C dist .
+            --file "$GITHUB_WORKSPACE/release/higher-stacks-paper-plugin-${GITHUB_REF_NAME}.jar" \
+            -C "$GITHUB_WORKSPACE/higher-stacks---paper-plugin/dist" .
+
+      - name: List release folder
+        run: ls -R "$GITHUB_WORKSPACE/release"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: Higher Stacks Paper Plugin ${{ github.ref_name }}
           generate_release_notes: true
-          files: higher-stacks-paper-plugin-${{ github.ref_name }}.jar
+          files: |
+            ${{ github.workspace }}/release/*.jar
           fail_on_unmatched_files: true
           body: |
             Build generated automatically from tag `${{ github.ref_name }}`.
