@@ -1,16 +1,14 @@
-name: Build and Release
+name: Build Plugin JAR
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,25 +34,20 @@ jobs:
         working-directory: higher-stacks---paper-plugin
         run: bun run build
 
-      - name: Package build as JAR
+      - name: Create JAR in repository root
+        shell: bash
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/release"
+          set -euo pipefail
+          rm -f higher-stacks-paper-plugin.jar
           jar --create \
-            --file "$GITHUB_WORKSPACE/release/higher-stacks-paper-plugin-${GITHUB_REF_NAME}.jar" \
-            -C "$GITHUB_WORKSPACE/higher-stacks---paper-plugin/dist" .
+            --file higher-stacks-paper-plugin.jar \
+            -C higher-stacks---paper-plugin/dist .
+          test -s higher-stacks-paper-plugin.jar
+          ls -lh higher-stacks-paper-plugin.jar
 
-      - name: List release folder
-        run: ls -R "$GITHUB_WORKSPACE/release"
-
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
         with:
-          name: Higher Stacks Paper Plugin ${{ github.ref_name }}
-          generate_release_notes: true
-          files: |
-            ${{ github.workspace }}/release/*.jar
-          fail_on_unmatched_files: true
-          body: |
-            Build generated automatically from tag `${{ github.ref_name }}`.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: higher-stacks-paper-plugin
+          path: higher-stacks-paper-plugin.jar
+          if-no-files-found: error
