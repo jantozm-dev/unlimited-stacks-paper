@@ -1,14 +1,16 @@
-name: Build Paper Plugin
+name: Build and Release
 
 on:
   push:
-    branches: ["main", "master"]
-  pull_request:
-    branches: ["main", "master"]
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     defaults:
@@ -16,7 +18,7 @@ jobs:
         working-directory: higher-stacks---paper-plugin
 
     steps:
-      - name: Checkout Source Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Bun
@@ -24,14 +26,33 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build app
+      - name: Build application
         run: bun run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Package build as JAR
+        run: |
+          mkdir -p ../release
+          jar --create \
+            --file "../release/higher-stacks-paper-plugin-${GITHUB_REF_NAME}.jar" \
+            -C dist .
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: higher-stacks-paper-plugin
-          path: higher-stacks---paper-plugin/dist
+          name: Higher Stacks Paper Plugin ${{ github.ref_name }}
+          generate_release_notes: true
+          files: higher-stacks-paper-plugin-${{ github.ref_name }}.jar
+          fail_on_unmatched_files: true
+          body: |
+            Build generated automatically from tag `${{ github.ref_name }}`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
