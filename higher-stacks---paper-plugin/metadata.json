@@ -1,0 +1,6 @@
+{
+  "name": "Higher Stacks - Paper Plugin",
+  "description": "Minecraft Java 1.26 server-side Paper plugin with customizable general and item-specific stack limits, live YAML config generator, full Java source code, and interactive inventory simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
